@@ -1,0 +1,93 @@
+name: 📚 Book Generator
+
+# Every 4 days this action:
+#   1. Prompts big-pickle (opencode.ai) for a NEW book concept — international
+#      genre, suitable title, author = Walusimbi Leon.
+#   2. Creates a new GitHub repo (kebab-case title slug, public, CC0,
+#      with branch protection) from the SGSS book-binder template.
+#   3. Seeds book.config.json + scripts/write-book.js + README + LICENSE.
+#   4. The seeded .github/workflows/write-book.yml (cron */3 * **) then
+#      writes a new chapter every 3 days — the same pipeline as the 17
+#      existing book repos.
+#
+# Runs from a GitHub-hosted runner (fresh IP) so opencode.ai doesn't
+# rate-limit us. Uses the owner PAT (GH_PAT) to create repos.
+
+on:
+  schedule:
+    - cron: "0 6 */4 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read   # for create-repo-from-template
+
+env:
+  GH_TOKEN: ${{ secrets.GH_PAT }}
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup gh CLI
+        run: echo "${{ secrets.GH_PAT }}" | gh auth login --with-token
+
+      - name: Generate book concept
+        id: concept
+        run: node scripts/book-generator.js
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          MODEL: big-pickle
+          OPENCODE_BASE_URL: "https://opencode.ai/zen/v1"
+
+      - name: Create book repo
+        if: success() && steps.concept.outputs.repo != ''
+        run: |
+          REPO="${{ steps.concept.outputs.repo }}"
+          echo "Creating repo: $REPO"
+          gh repo list Walusimbi-Leon1 --limit 1000 --json name | jq -e --arg n "$REPO" 'any(.name == $n)' && {
+            echo "::error::Repo $REPO already exists"
+            exit 1
+          }
+          gh repo create "Walusimbi-Leon1/$REPO" \
+            --public \
+            --template=sgss-template/book-binder \
+            --description="${{ steps.concept.outputs.description }}" \
+            --confirm
+          # Apply the standard SGSS repo protection (no force-pushes, no deletions)
+          curl -sSL \
+            -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
+            -H "Accept: application/vnd.github+json" \
+            -X PUT \
+            "https://api.github.com/repos/Walusimbi-Leon1/$REPO/branches/main/protection" \
+            -d '{"required_status_checks":null,"enforce_admins":false,"required_pull_request_reviews":{"dismiss_stale_reviews":true},"restrictions":null,"allow_force_pushes":false,"allow_deletions":false}'
+
+      - name: Seed book repo
+        if: success() && steps.concept.outputs.repo != ''
+        run: node scripts/seed-book.js --repo="${{ steps.concept.outputs.repo }}"
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          OPENCODE_API_KEY_2: ${{ secrets.OPENCODE_API_KEY_2 }}
+          OPENCODE_API_KEY_3: ${{ secrets.OPENCODE_API_KEY_3 }}
+          OPENCODE_API_KEY_4: ${{ secrets.OPENCODE_API_KEY_4 }}
+          OPENCODE_API_KEY_5: ${{ secrets.OPENCODE_API_KEY_5 }}
+          GH_PUSH_TOKEN: ${{ secrets.GH_PUSH_TOKEN }}
+          BOOK_TITLE: "${{ steps.concept.outputs.title }}"
+          BOOK_SUBTITLE: "${{ steps.concept.outputs.subtitle }}"
+          BOOK_GENRE: "${{ steps.concept.outputs.genre }}"
+          BOOK_DESCRIPTION: "${{ steps.concept.outputs.description }}"
+          BOOK_STYLE: "${{ steps.concept.outputs.style }}"
+          BOOK_CHARACTERS: "${{ steps.concept.outputs.characters }}"
+          BOOK_SETTING: "${{ steps.concept.outputs.setting }}"
+          BOOK_NOTES: "${{ steps.concept.outputs.notes }}"
