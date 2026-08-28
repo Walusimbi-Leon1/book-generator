@@ -131,11 +131,11 @@ async function generate() {
     // Emit as GH Actions step outputs (coerce all to strings, skip nulls)
     const GITHUB_OUTPUT = process.env.GITHUB_OUTPUT;
     if (GITHUB_OUTPUT) {
-      const lines = Object.entries(json).map(([k, v]) => {
-        const s = String(v).replace(/"/g, '\\"');
-        return `${k}=${s}`;
-      });
-      execSync(`printf '%s\\n' "${lines.join("\\n")}" >> "${GITHUB_OUTPUT}"`);
+      const fs = require("fs");
+      const out = Object.entries(json)
+        .map(([k, v]) => `${k}=${String(v).replace(/\"/g, '\\"')}`)
+        .join("\n") + "\n";
+      fs.appendFileSync(GITHUB_OUTPUT, out);
     } else {
       // Local debug: just print
       Object.entries(json).forEach(([k, v]) => console.log(`${k}=${v}`));
