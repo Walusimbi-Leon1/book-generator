@@ -13,7 +13,7 @@
  *   repo, title, subtitle, description, genre, style, characters, setting, notes
  */
 
-const fs = require("fs");
+const { execSync } = require("child_process");
 const https = require("https");
 const { URL } = require("url");
 
@@ -101,7 +101,6 @@ async function generate() {
     const raw = await generate();
     let json;
     try {
-      // Strip any accidental surrounding markdown/backticks
       const cleaned = raw.replace(/^```json\s*/, "").replace(/```\s*$/, "").trim();
       json = JSON.parse(cleaned);
     } catch (e) {
@@ -113,7 +112,7 @@ async function generate() {
     // Validate required fields
     const required = ["title", "subtitle", "genre", "description", "style", "characters", "setting", "notes", "repo"];
     for (const f of required) {
-      if (!json[f]) {
+      if (json[f] === undefined || json[f] === null) {
         console.error(`❌ Missing field: ${f}`);
         console.error(JSON.stringify(json, null, 2));
         process.exit(1);
@@ -129,10 +128,17 @@ async function generate() {
     console.log("✅ Concept generated:");
     console.log(JSON.stringify(json, null, 2));
 
-    // Emit as GH Actions step outputs
-    const { execSync } = require("child_process");
-    for (const [k, v] of Object.entries(json)) {
-      execSync(`printf '%s\n' "${k}=${v.replace(/"/g, '\\"')}" >> "$GITHUB_OUTPUT"`, { stdio: "inherit" });
+    // Emit as GH Actions step outputs (coerce all to strings, skip nulls)
+    const GITHUB_OUTPUT = process.env.GITHUB_OUTPUT;
+    if (GITHUB_OUTPUT) {
+      const lines = Object.entries(json).map(([k, v]) => {
+        const s = String(v).replace(/"/g, '\\"');
+        return `${k}=${s}`;
+      });
+      execSync(`printf '%s\\n' "${lines.join("\\n")}" >> "${GITHUB_OUTPUT}"`);
+    } else {
+      // Local debug: just print
+      Object.entries(json).forEach(([k, v]) => console.log(`${k}=${v}`));
     }
   } catch (err) {
     console.error("❌", err.message);

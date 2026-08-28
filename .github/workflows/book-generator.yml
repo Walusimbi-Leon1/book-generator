@@ -51,10 +51,10 @@ jobs:
         run: |
           REPO="${{ steps.concept.outputs.repo }}"
           echo "Creating repo: $REPO"
-          gh repo list Walusimbi-Leon1 --limit 1000 --json name | jq -e --arg n "$REPO" 'any(.name == $n)' && {
+          if gh repo view "Walusimbi-Leon1/$REPO" >/dev/null 2>&1; then
             echo "::error::Repo $REPO already exists"
             exit 1
-          }
+          fi
           gh repo create "Walusimbi-Leon1/$REPO" \
             --public \
             --template=sgss-template/book-binder \
