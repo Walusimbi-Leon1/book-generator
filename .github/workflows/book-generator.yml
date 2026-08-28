@@ -61,7 +61,7 @@ jobs:
           fi
           gh repo create "Walusimbi-Leon1/$REPO" \
             --public \
-            --template=sgss-template/book-binder \
+            --template=Walusimbi-Leon1/sgss-template \
             --description="${{ steps.concept.outputs.description }}" \
             --confirm
           # Apply the standard SGSS repo protection (no force-pushes, no deletions)
