@@ -53,6 +53,8 @@ jobs:
         run: |
           REPO="${{ steps.concept.outputs.repo }}"
           echo "Creating repo: $REPO"
+          DESC="${{ steps.concept.outputs.description }}"
+          DESC=${DESC:0:350}
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $GH_PAT" "https://api.github.com/repos/Walusimbi-Leon1/$REPO")
           echo "API check returned HTTP $HTTP_CODE"
           if [ "$HTTP_CODE" = "200" ]; then
@@ -62,7 +64,7 @@ jobs:
           gh repo create "Walusimbi-Leon1/$REPO" \
             --public \
             --template=Walusimbi-Leon1/sgss-template \
-            --description="${{ steps.concept.outputs.description }}" \
+            --description="$DESC" \
             --confirm
           # Apply the standard SGSS repo protection (no force-pushes, no deletions)
           curl -sSL \
