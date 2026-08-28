@@ -48,12 +48,13 @@ jobs:
 
       - name: Create book repo
         if: success() && steps.concept.outputs.repo != ''
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           REPO="${{ steps.concept.outputs.repo }}"
           echo "Creating repo: $REPO"
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
-            "https://api.github.com/repos/Walusimbi-Leon1/$REPO")
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $GH_PAT" "https://api.github.com/repos/Walusimbi-Leon1/$REPO")
+          echo "API check returned HTTP $HTTP_CODE"
           if [ "$HTTP_CODE" = "200" ]; then
             echo "::error::Repo $REPO already exists"
             exit 1
