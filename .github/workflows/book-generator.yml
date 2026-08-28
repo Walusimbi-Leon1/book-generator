@@ -38,9 +38,6 @@ jobs:
         with:
           node-version: 20
 
-      - name: Setup gh CLI
-        run: echo "${{ secrets.GH_PAT }}" | gh auth login --with-token
-
       - name: Generate book concept
         id: concept
         run: node scripts/book-generator.js
