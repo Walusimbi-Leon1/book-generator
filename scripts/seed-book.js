@@ -56,9 +56,9 @@ function setSecret(name, value) {
 }
 
 // ── Clone template ─────────────────────────────────────────────────
-console.log(`Cloning template: Walusimbi-Leon1/sgss-template`);
+console.log(`Cloning new repo: Walusimbi-Leon1/${REPO}`);
 const tmpDir = `/tmp/seed-${REPO}-${Date.now()}`;
-execSync(`git clone https://x-access-token:${GH_TOKEN}@github.com/Walusimbi-Leon1/sgss-template.git ${tmpDir}`, {
+execSync(`git clone https://x-access-token:${GH_TOKEN}@github.com/Walusimbi-Leon1/${REPO}.git ${tmpDir}`, {
   stdio: "inherit",
 });
 process.chdir(tmpDir);
