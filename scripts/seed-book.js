@@ -9,7 +9,7 @@
  *   3. Sets the required GitHub Actions secrets on the new repo so its
  *      3-day writing workflow can run
  *   4. Commits + pushes to main on the newly-created repo
- *   5. The seeded write-book.yml (cron */3 * **) then writes a new
+ *   5. The seeded write-book.yml (cron every 3 days) then writes a new
  *      chapter every 3 days — same pipeline as the 17 existing book repos.
  *
  * This guarantees the new book auto-writes itself on schedule with no
