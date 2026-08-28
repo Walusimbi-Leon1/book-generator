@@ -19,7 +19,12 @@
 const { execSync } = require("child_process");
 const fs = require("fs");
 
-const { REPO, GH_TOKEN, GH_PAT } = process.env;
+const { REPO: REPO_ENV, GH_TOKEN, GH_PAT } = process.env;
+const REPO_ARG = (() => {
+  const a = process.argv.find((x) => x.startsWith("--repo="));
+  return a ? a.slice("--repo=".length) : undefined;
+})();
+const REPO = REPO_ENV || REPO_ARG;
 const {
   BOOK_TITLE, BOOK_SUBTITLE, BOOK_GENRE, BOOK_DESCRIPTION,
   BOOK_STYLE, BOOK_CHARACTERS, BOOK_SETTING, BOOK_NOTES,
