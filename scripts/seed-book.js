@@ -63,6 +63,12 @@ execSync(`git clone https://x-access-token:${GH_TOKEN}@github.com/Walusimbi-Leon
 });
 process.chdir(tmpDir);
 
+// ── Write LICENSE (CC0) if absent ───────────────────────────────
+if (!fs.existsSync("LICENSE")) {
+  fs.writeFileSync("LICENSE", `Creative Commons CC0 1.0 Universal\n\nTo the extent permitted by law, the author has dedicated all copyright and related\nand neighboring rights to this work to the public domain worldwide. This work is\nfree for all to read, share, and distribute.\n\nWalusimbi Leon (SGSS)\n`);
+  console.log("✅ LICENSE written (CC0)");
+}
+
 // ── Write book.config.json ─────────────────────────────────────────
 const config = {
   title: BOOK_TITLE,

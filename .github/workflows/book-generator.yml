@@ -63,7 +63,6 @@ jobs:
           fi
           gh repo create "Walusimbi-Leon1/$REPO" \
             --public \
-            --template=Walusimbi-Leon1/sgss-template \
             --description="$DESC" \
             --confirm
           # Apply the standard SGSS repo protection (no force-pushes, no deletions)
