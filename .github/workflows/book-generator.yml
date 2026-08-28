@@ -51,7 +51,10 @@ jobs:
         run: |
           REPO="${{ steps.concept.outputs.repo }}"
           echo "Creating repo: $REPO"
-          if gh repo view "Walusimbi-Leon1/$REPO" >/dev/null 2>&1; then
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
+            "https://api.github.com/repos/Walusimbi-Leon1/$REPO")
+          if [ "$HTTP_CODE" = "200" ]; then
             echo "::error::Repo $REPO already exists"
             exit 1
           fi
